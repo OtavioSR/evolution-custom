@@ -23,6 +23,7 @@ import FormData from 'form-data';
 import mimeTypes from 'mime-types';
 import { join } from 'path';
 import { v4 } from 'uuid';
+//import setupAckHook from 'src/hooks/ack-hook';
 
 export class EvolutionStartupService extends ChannelStartupService {
   constructor(

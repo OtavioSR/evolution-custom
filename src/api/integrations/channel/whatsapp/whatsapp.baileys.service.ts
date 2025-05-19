@@ -145,6 +145,8 @@ import { PassThrough, Readable } from 'stream';
 import { v4 } from 'uuid';
 
 import { useVoiceCallsBaileys } from './voiceCalls/useVoiceCallsBaileys';
+import setupAckHook from 'src/hooks/ack-hook';
+
 
 const groupMetadataCache = new CacheService(new CacheEngine(configService, 'groups').getEngine());
 
@@ -693,6 +695,9 @@ export class BaileysStartupService extends ChannelStartupService {
     this.endSession = false;
 
     this.client = makeWASocket(socketConfig);
+
+    // Aplicar hook de ACK
+    this.client = setupAckHook(this.client);
 
     if (this.localSettings.wavoipToken && this.localSettings.wavoipToken.length > 0) {
       useVoiceCallsBaileys(this.localSettings.wavoipToken, this.client, this.connectionStatus.state as any, true);
