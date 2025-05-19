@@ -128,12 +128,43 @@ export class EvolutionStartupService extends ChannelStartupService {
 
   protected async eventHandler(received: any) {
     try {
-      let messageRaw: any;
+      // Primeiro, tente enviar o ACK de baixo nível via socket WebSocket
       if (received.key && !received.key.fromMe) {
-        // Enviar ACK de entrega (duas setas cinzas)
-        await this.client.sendMessageAck(received.key.remoteJid, received.key);
+        try {
+          // Método 1: Usando o socket WebSocket diretamente
+          if (this.client.ws) {
+            const node = {
+              tag: 'receipt',
+              attrs: {
+                id: received.key.id,
+                type: 'receipt',
+                to: received.key.remoteJid,
+                participant: received.key.participant
+              }
+            };
+
+            await this.client.ws.sendNode(node);
+            console.log('ACK de baixo nível enviado para:', received.key.id);
+          }
+        } catch (ackError) {
+          console.error('Erro ao enviar ACK de baixo nível:', ackError);
+
+          // Método 2: Tente o método padrão como fallback
+          try {
+            await this.client.sendReceipt(
+              received.key.remoteJid,
+              received.key.participant || received.key.remoteJid,
+              [received.key.id],
+              'receipt'
+            );
+            console.log('ACK via sendReceipt enviado para:', received.key.id);
+          } catch (receiptError) {
+            console.error('Erro ao enviar ACK via sendReceipt:', receiptError);
+          }
+        }
       }
 
+      let messageRaw: any;
       if (received.message) {
         const key = {
           id: received.key.id || v4(),
