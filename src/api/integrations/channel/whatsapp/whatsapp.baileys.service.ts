@@ -1210,7 +1210,7 @@ export class BaileysStartupService extends ChannelStartupService {
                 received.key.remoteJid,
                 received.key.participant || received.key.remoteJid,
                 [received.key.id],
-                'delivery'
+                3
               );
               this.logger.log(`✔️ ACK de entrega (✓✓) forçado para ${received.key.remoteJid}, msgId: ${received.key.id}`);
             } catch (err) {
