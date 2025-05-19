@@ -1,4 +1,4 @@
-// ack-hook.js - Versão que evita marcar como lido
+// ack-hook.js - Versão focada em DELIVERY_ACK
 module.exports = function setupAckHook(client) {
   // Registra quando novas mensagens chegarem
   client.ev.on('messages.upsert', async (upsert) => {
@@ -8,34 +8,29 @@ module.exports = function setupAckHook(client) {
         if (!msg.key.fromMe) {
           console.log(`[ACK HOOK] Processando mensagem: ${msg.key.id} de ${msg.key.remoteJid}`);
           
-          // Método 1: sendReceipt com 'sender' (apenas confirmação de entrega)
+          // Método específico para DELIVERY_ACK (duas setas cinzas)
           try {
+            // Tenta enviar um ACK de tipo 3 (DELIVERY_ACK)
             await client.sendReceipt(
               msg.key.remoteJid,
               msg.key.participant || msg.key.remoteJid,
               [msg.key.id],
-              'sender'
+              'delivery'  // Tenta usar 'delivery' explicitamente
             );
-            console.log(`[ACK HOOK] ACK 'sender' enviado para: ${msg.key.id}`);
+            console.log(`[ACK HOOK] DELIVERY_ACK enviado para: ${msg.key.id}`);
           } catch (error1) {
-            console.error('[ACK HOOK] Erro ao enviar ACK sender:', error1);
+            console.error('[ACK HOOK] Erro ao enviar DELIVERY_ACK:', error1);
             
-            // Método 2: sendReceipt com 'receipt' (apenas confirmação de entrega)
+            // Método alternativo
             try {
-              await client.sendReceipt(
-                msg.key.remoteJid,
-                msg.key.participant || msg.key.remoteJid,
-                [msg.key.id],
-                'receipt'
-              );
-              console.log(`[ACK HOOK] ACK 'receipt' enviado para: ${msg.key.id}`);
+              // Tenta com o valor numérico 3 que corresponde a DELIVERY_ACK
+              const deliveryAck = { tag: 'ack', attrs: { id: msg.key.id, to: msg.key.remoteJid, type: 'delivery' } };
+              await client.sendNode(deliveryAck);
+              console.log(`[ACK HOOK] DELIVERY_ACK via sendNode enviado para: ${msg.key.id}`);
             } catch (error2) {
-              console.error('[ACK HOOK] Erro ao enviar ACK receipt:', error2);
+              console.error('[ACK HOOK] Erro ao enviar DELIVERY_ACK via sendNode:', error2);
             }
           }
-          
-          // NÃO use readMessages, pois isso marca como lido (setas azuis)
-          // NÃO use protocolMessage, pois está causando erro
         }
       }
     }
@@ -48,6 +43,6 @@ module.exports = function setupAckHook(client) {
     return Promise.resolve(); // Não faz nada
   };
   
-  console.log('[ACK HOOK] Hook de confirmação de entrega (apenas setas cinzas) instalado com sucesso!');
+  console.log('[ACK HOOK] Hook específico para DELIVERY_ACK (duas setas cinzas) instalado com sucesso!');
   return client;
 };
