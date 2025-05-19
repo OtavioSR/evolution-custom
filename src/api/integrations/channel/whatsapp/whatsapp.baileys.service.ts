@@ -1203,21 +1203,6 @@ export class BaileysStartupService extends ChannelStartupService {
 
           const messageRaw = this.prepareMessage(received);
 
-          // Forçar ACK de entrega (✓✓) caso não tenha sido enviado automaticamente
-          if (!received.key.fromMe && received.key.remoteJid && received.key.id) {
-            try {
-              await this.client.sendReceipt(
-                received.key.remoteJid,
-                received.key.participant || received.key.remoteJid,
-                [received.key.id],
-                3
-              );
-              this.logger.log(`✔️ ACK de entrega (✓✓) forçado para ${received.key.remoteJid}, msgId: ${received.key.id}`);
-            } catch (err) {
-              this.logger.error(`❌ Falha ao forçar ACK de entrega: ${err.message}`);
-            }
-          }
-
           const isMedia =
             received?.message?.imageMessage ||
             received?.message?.videoMessage ||

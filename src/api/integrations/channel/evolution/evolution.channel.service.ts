@@ -129,6 +129,10 @@ export class EvolutionStartupService extends ChannelStartupService {
   protected async eventHandler(received: any) {
     try {
       let messageRaw: any;
+      if (received.key && !received.key.fromMe) {
+        // Enviar ACK de entrega (duas setas cinzas)
+        await this.client.sendMessageAck(received.key.remoteJid, received.key);
+      }
 
       if (received.message) {
         const key = {
